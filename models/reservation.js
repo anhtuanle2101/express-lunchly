@@ -16,6 +16,17 @@ class Reservation {
     this.notes = notes;
   }
 
+  get numGuests(){
+    return this.numGuests;
+  }
+
+  set numGuests(num){
+    if (num < 1){
+      throw Error("Reservation can not be fewer than 1");
+    }
+    this.numGuests = num;
+  }
+
   /** formatter for startAt */
 
   getformattedStartAt() {

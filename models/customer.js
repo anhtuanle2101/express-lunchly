@@ -124,7 +124,7 @@ class Customer {
   }
 
   // Full name
-  fullName(){
+  get fullName(){
     return this.firstName + " "+ this.lastName;
   }
 
