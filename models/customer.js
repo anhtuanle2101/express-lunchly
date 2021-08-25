@@ -14,6 +14,50 @@ class Customer {
     this.notes = notes;
   }
 
+  // Best of 10
+  static async best(){
+    const results = await db.query(
+      `SELECT C.id AS "id",
+          C.first_name AS "firstName",
+          C.last_name AS "lastName",
+          C.phone AS "phone", 
+          C.notes AS "notes",
+          COUNT(*)
+        FROM customers C
+        JOIN reservations R ON C.id = R.customer_id
+        GROUP BY 
+          C.id, 
+          C.first_name,
+          C.last_name,
+          C.phone,
+          C.notes
+        ORDER BY COUNT(R.id) DESC
+        LIMIT 10;
+      `
+    )
+    return results.rows.map(c => {
+      delete c.count;
+      return new Customer(c);
+    });
+  }
+
+  // Search By Name
+  static async searchByName(term) {
+    const results = await db.query(
+      `SELECT id, 
+         first_name AS "firstName",  
+         last_name AS "lastName", 
+         phone, 
+         notes
+       FROM customers
+       WHERE first_name = $1
+       OR last_name = $1
+       ORDER BY last_name, first_name`
+       , [term]
+    );
+    return results.rows.map(c => new Customer(c));
+  }
+
   /** find all customers. */
 
   static async all() {
@@ -83,6 +127,8 @@ class Customer {
   fullName(){
     return this.firstName + " "+ this.lastName;
   }
+
+  
 }
 
 module.exports = Customer;

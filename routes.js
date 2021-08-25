@@ -7,6 +7,31 @@ const Reservation = require("./models/reservation");
 
 const router = new express.Router();
 
+router.get("/best", async function(req, res, next){
+  try {
+    const customers = await Customer.best();
+    console.log(customers);
+    return res.render('customer_list.html', {customers});
+  } catch (err) {
+    return next(err);
+  }
+})
+
+// search by name handler
+
+router.get("/search", async function(req, res, next){
+  try {
+    const {term} = req.query;
+    if (term==="" || !term){
+      return res.redirect("/");
+    }
+    const customers = await Customer.searchByName(term);
+    return res.render('customer_list.html', {customers});
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /** Homepage: show list of customers. */
 
 router.get("/", async function(req, res, next) {
@@ -111,5 +136,7 @@ router.post("/:id/add-reservation/", async function(req, res, next) {
     return next(err);
   }
 });
+
+
 
 module.exports = router;
