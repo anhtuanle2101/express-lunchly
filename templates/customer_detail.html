@@ -20,6 +20,7 @@
     <ul>
       {% for reservation in reservations %}
       <li><b>{{ reservation.getformattedStartAt() }}</b> for {{ reservation.numGuests }}</li>
+      <a class="btn btn-secondary" href="/{{ customer.id }}/reservation/{{ reservation.id }}/edit/">Edit</a>
       {% endfor %}
     </ul>
     {% else %}

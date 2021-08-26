@@ -10,7 +10,6 @@ const router = new express.Router();
 router.get("/best", async function(req, res, next){
   try {
     const customers = await Customer.best();
-    console.log(customers);
     return res.render('customer_list.html', {customers});
   } catch (err) {
     return next(err);
@@ -58,11 +57,11 @@ router.get("/add/", async function(req, res, next) {
 router.post("/add/", async function(req, res, next) {
   try {
     const firstName = req.body.firstName;
+    const middleName = req.body.middleName;
     const lastName = req.body.lastName;
     const phone = req.body.phone;
     const notes = req.body.notes;
-
-    const customer = new Customer({ firstName, lastName, phone, notes });
+    const customer = new Customer({ firstName, middleName, lastName, phone, notes });
     await customer.save();
 
     return res.redirect(`/${customer.id}/`);
@@ -76,9 +75,7 @@ router.post("/add/", async function(req, res, next) {
 router.get("/:id/", async function(req, res, next) {
   try {
     const customer = await Customer.get(req.params.id);
-
     const reservations = await customer.getReservations();
-
     return res.render("customer_detail.html", { customer, reservations });
   } catch (err) {
     return next(err);
@@ -103,6 +100,7 @@ router.post("/:id/edit/", async function(req, res, next) {
   try {
     const customer = await Customer.get(req.params.id);
     customer.firstName = req.body.firstName;
+    customer.middleName = req.body.middleName;
     customer.lastName = req.body.lastName;
     customer.phone = req.body.phone;
     customer.notes = req.body.notes;
@@ -113,6 +111,39 @@ router.post("/:id/edit/", async function(req, res, next) {
     return next(err);
   }
 });
+
+// Show form to edit a reservation
+router.get("/:id/reservation/:reservation_id/edit", async function(req, res, next){
+  try {
+    const reservation = await Reservation.get(req.params.reservation_id);
+    if (reservation.customerId != req.params.id){
+      throw Error("This reservation is invalid (does not belong to this user)");
+    }
+    const customer = await Customer.get(reservation.customerId);
+    return res.render("reservation_edit_form.html", {reservation, customer});
+  } catch (err) {
+    return next(err);
+  }
+})
+
+//Handle editing a reservation
+router.post("/:id/reservation/:reservation_id/edit", async function(req, res, next){
+  try {
+    const reservation = await Reservation.get(req.params.reservation_id);
+    if (reservation.customerId != req.params.id){
+      throw Error("This reservation is invalid (does not belong to this user)");
+    }
+    const customer = await Customer.get(reservation.customerId);
+    reservation.numGuests = req.body.numGuests;
+    reservation.startAt = req.body.startAt;
+    reservation.notes = req.body.notes;
+    await reservation.save();
+
+    return res.redirect(`/${reservation.customerId}`);
+  } catch (err) {
+    return next(err);
+  }
+})
 
 /** Handle adding a new reservation. */
 

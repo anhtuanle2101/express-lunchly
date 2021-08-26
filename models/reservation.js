@@ -1,7 +1,7 @@
 /** Reservation for Lunchly */
 
 const moment = require("moment");
-
+const Customer = require("./customer");
 const db = require("../db");
 
 
@@ -17,14 +17,14 @@ class Reservation {
   }
 
   get numGuests(){
-    return this.numGuests;
+    return this._numGuests;
   }
 
   set numGuests(num){
     if (num < 1){
       throw Error("Reservation can not be fewer than 1");
     }
-    this.numGuests = num;
+    this._numGuests = num;
   }
 
   /** formatter for startAt */
@@ -46,9 +46,23 @@ class Reservation {
          WHERE customer_id = $1`,
         [customerId]
     );
-
-    return results.rows.map(row => new Reservation(row));
+    return results.rows.map(r=>new Reservation(r));
   }
+
+  static async get(id){
+    const results = await db.query(
+      `SELECT id, 
+        customer_id AS "customerId", 
+        num_guests AS "numGuests", 
+        start_at AS "startAt", 
+        notes AS "notes"
+        FROM reservations WHERE id = $1`,
+      [id]
+    );
+    const reservation = results.rows[0];
+    return new Reservation(reservation);
+  }
+
 
   async save(){
     if (this.id === undefined) {
